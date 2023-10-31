@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>找餐廳</title>
+</head>
+<body>
+    <h1>找餐廳</h1>
+    <label for="radius">範圍距離（公尺）：</label>
+    <input type="number" id="radius" min="100" value="1000"><br><br>
+    <button onclick="findRestaurants()">尋找餐廳</button><br><br>
+
+    <div id="map" style="width: 600px; height: 400px;"></div>
+
+    <h2>附近餐廳</h2>
+    <table id="restaurantTable">
+        <tr>
+            <th>名稱</th>
+            <th>地址</th>
+            <th>詳細資訊</th>
+        </tr>
+    </table>
+
+    <script>
+        var map;
+        var marker;
+
+        function initMap() {
+            map = new google.maps.Map(document.getElementById('map'), {
+                center: {lat: 25.035390851221884, lng: 121.43323428774416},
+                zoom: 15
+            });
+
+            marker = new google.maps.Marker({
+                position: {lat: 25.035390851221884, lng: 121.43323428774416},
+                map: map,
+                draggable: true
+            });
+
+            google.maps.event.addListener(map, 'click', function(event) {
+                marker.setPosition(event.latLng);
+            });
+        }
+
+        function findRestaurants() {
+            var radius = parseInt(document.getElementById('radius').value);
+            var center = marker.getPosition();
+
+            var request = {
+                location: center,
+                radius: radius,
+                types: ['restaurant']
+            };
+
+            var service = new google.maps.places.PlacesService(map);
+            service.nearbySearch(request, function(results, status) {
+                if (status == google.maps.places.PlacesServiceStatus.OK) {
+                    var table = document.getElementById('restaurantTable');
+                    table.innerHTML = '<tr><th>名稱</th><th>地址</th><th>詳細資訊</th></tr>';
+
+                    for (var i = 0; i < results.length; i++) {
+                        var name = results[i].name;
+                        var address = results[i].vicinity;
+                        var placeId = results[i].place_id;
+
+                        var row = table.insertRow(i + 1);
+                        var cell1 = row.insertCell(0);
+                        var cell2 = row.insertCell(1);
+                        var cell3 = row.insertCell(2);
+
+                        cell1.innerHTML = name;
+                        cell2.innerHTML = address;
+                        cell3.innerHTML = `<a href="https://www.google.com/maps/place/?q=place_id:${placeId}" target="_blank">查看詳細資訊</a>`;
+                    }
+                }
+            });
+        }
+
+        initMap();
+    </script>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAO1CMfv9zOlZ9r4rnis_g76-gWR-ELrxg&callback=initMap&libraries=places"></script>
+</body>
+</html>
